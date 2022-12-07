@@ -1,8 +1,9 @@
+import json
+
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-
-from .models import Product
+from .models import Product, Order, ProductQuantity
 
 
 def banners_list_api(request):
@@ -58,5 +59,28 @@ def product_list_api(request):
 
 
 def register_order(request):
-    # TODO это лишь заглушка
-    return JsonResponse({})
+    try:
+        raw_order = json.loads(request.body.decode())
+    except ValueError as error:
+        return 'Ошибка при создании нового заказа: {}'.format(error)
+
+    address = raw_order.get('address', '')
+    firstname = raw_order.get('firstname', '')
+    lastname = raw_order.get('lastname', '')
+    phonenumber = raw_order.get('phonenumber', '')
+    products = raw_order.get('products', [])
+
+    new_order = Order.objects.create(address=address, firstname=firstname, lastname=lastname, phonenumber=phonenumber)
+
+    new_product_quantity = [
+        ProductQuantity.objects.create(
+            product=Product.objects.get(id=item.get('product', '')),
+            quantity=item.get('quantity', ''),
+            order=new_order
+        ) for item in products if products
+    ]
+
+    if (new_order and new_product_quantity):
+        return 'Заказ успешно оформлен'
+    else:
+        return 'При оформлении заказа были допущены ошибки!'
