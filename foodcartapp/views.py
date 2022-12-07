@@ -1,5 +1,9 @@
 import json
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import permissions, status
+
 from django.http import JsonResponse
 from django.templatetags.static import static
 
@@ -58,11 +62,9 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    try:
-        raw_order = json.loads(request.body.decode())
-    except ValueError as error:
-        return 'Ошибка при создании нового заказа: {}'.format(error)
+    raw_order = json.loads(json.dumps(request.data))
 
     address = raw_order.get('address', '')
     firstname = raw_order.get('firstname', '')
@@ -71,16 +73,6 @@ def register_order(request):
     products = raw_order.get('products', [])
 
     new_order = Order.objects.create(address=address, firstname=firstname, lastname=lastname, phonenumber=phonenumber)
+    [ProductQuantity.objects.create(product=Product.objects.get(id=item.get('product', '')), quantity=item.get('quantity', ''), order=new_order) for item in products if products]
 
-    new_product_quantity = [
-        ProductQuantity.objects.create(
-            product=Product.objects.get(id=item.get('product', '')),
-            quantity=item.get('quantity', ''),
-            order=new_order
-        ) for item in products if products
-    ]
-
-    if (new_order and new_product_quantity):
-        return 'Заказ успешно оформлен'
-    else:
-        return 'При оформлении заказа были допущены ошибки!'
+    return Response(status=status.HTTP_204_NO_CONTENT)
