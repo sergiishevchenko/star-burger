@@ -5,3 +5,4 @@ environs[django]==9.3.2
 django-phonenumber-field==7.0.1
 django-phonenumbers==1.0.1
 phonenumbers==8.13.1
+djangorestframework==3.14.0
