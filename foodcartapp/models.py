@@ -142,7 +142,7 @@ class Order(models.Model):
 
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта')
-    product = models.OneToOneField(Product, on_delete=models.PROTECT)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
 
     class Meta:
