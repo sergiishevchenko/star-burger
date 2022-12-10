@@ -129,7 +129,7 @@ class Order(models.Model):
     address = models.CharField('Адрес доставки', max_length=100)
     firstname = models.CharField('Имя', blank=True, max_length=20)
     lastname = models.CharField('Фамилия', max_length=20)
-    phonenumber = PhoneNumberField('Номер телефона', blank=True)
+    phonenumber = PhoneNumberField('Номер телефона')
     created_at = models.DateTimeField(auto_now=True)
 
     class Meta:

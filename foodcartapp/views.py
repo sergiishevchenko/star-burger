@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 
 from .models import Product, Order, ProductQuantity
+from .serializers import OrderSerializer, ProductQuantitySerializer
 
 
 def banners_list_api(request):
@@ -65,6 +66,13 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     raw_order = json.loads(json.dumps(request.data))
+    serializer = OrderSerializer(data=raw_order)
+    serializer.is_valid(raise_exception=True)
+
+    for product in raw_order['products']:
+        product_serializer = ProductQuantitySerializer(data=product)
+        product_serializer.is_valid(raise_exception=True)
+
 
     address = raw_order.get('address', '')
     firstname = raw_order.get('firstname', '')
