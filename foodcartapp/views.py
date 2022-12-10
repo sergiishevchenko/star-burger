@@ -83,4 +83,4 @@ def register_order(request):
     new_order = Order.objects.create(address=address, firstname=firstname, lastname=lastname, phonenumber=phonenumber)
     [ProductQuantity.objects.create(product=Product.objects.get(id=item.get('product', '')), quantity=item.get('quantity', ''), order=new_order) for item in products if products]
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(OrderSerializer(new_order).data, status=status.HTTP_201_CREATED)

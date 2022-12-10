@@ -11,7 +11,7 @@ class ProductQuantitySerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    products = ProductQuantitySerializer(allow_empty=False, many=True)
+    products = ProductQuantitySerializer(allow_empty=False, many=True, write_only=True)
 
     class Meta:
         model = Order
