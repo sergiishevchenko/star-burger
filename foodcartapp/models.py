@@ -13,6 +13,12 @@ class OrderStatus(models.TextChoices):
     DONE = 'DONE', _('Выполнен')
 
 
+class PaymentMethod(models.TextChoices):
+    CASH = 'CASH', _('Наличностью')
+    ELECTRIC = 'ELECTRIC', _('Электронно')
+    NO = 'NO', _('Не указан')
+
+
 class Restaurant(models.Model):
     name = models.CharField(
         'название',
@@ -141,6 +147,7 @@ class Order(models.Model):
     comment = models.TextField('Комментарий', blank=True)
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     status = models.CharField('Статус', max_length=20, choices=OrderStatus.choices, default=OrderStatus.IN_PROGRESS, db_index=True)
+    payment_method = models.CharField('Способ оплаты', max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.NO, db_index=True)
     called_at = models.DateTimeField('Время звонка', blank=True, null=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, db_index=True)
