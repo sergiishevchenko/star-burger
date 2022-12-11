@@ -141,6 +141,8 @@ class Order(models.Model):
     comment = models.TextField('Комментарий', blank=True)
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     status = models.CharField('Статус', max_length=20, choices=OrderStatus.choices, default=OrderStatus.IN_PROGRESS, db_index=True)
+    called_at = models.DateTimeField('Время звонка', blank=True, null=True)
+    delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, db_index=True)
 
     class Meta:
