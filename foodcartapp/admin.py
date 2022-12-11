@@ -114,4 +114,5 @@ class ProductQuantityInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    list_display = ['firstname', 'lastname', 'address', 'phonenumber', 'order_price']
     inlines = [ProductQuantityInline,]

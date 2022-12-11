@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -138,6 +139,18 @@ class Order(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.lastname, self.address)
+
+    @property
+    def order_price(self):
+        products = ProductQuantity.objects\
+            .filter(order=self.id)\
+                .values('product__price', 'quantity')\
+                    .annotate(result=F('product__price') * F('quantity'))\
+                        .aggregate(Sum('result'))\
+                            .get('result__sum', 0.00)
+        return products
+
+    order_price.fget.short_description = 'Стоимость заказа'
 
 
 class ProductQuantity(models.Model):
