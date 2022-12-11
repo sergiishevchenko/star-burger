@@ -1,8 +1,16 @@
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
+
+
+class OrderStatus(models.TextChoices):
+    IN_PROGRESS = 'IN_PROGRESS', _('Необработанный')
+    RESTAURANT = 'IN_RESTAURANT', _('Передан в ресторан')
+    COURIER = 'IN_WAY', _('Передан курьеру')
+    DONE = 'DONE', _('Выполнен')
 
 
 class Restaurant(models.Model):
@@ -130,8 +138,10 @@ class Order(models.Model):
     address = models.CharField('Адрес доставки', max_length=100)
     firstname = models.CharField('Имя', blank=True, max_length=20)
     lastname = models.CharField('Фамилия', max_length=20)
-    phonenumber = PhoneNumberField('Номер телефона')
-    created_at = models.DateTimeField(auto_now=True)
+    comment = models.TextField('Комментарий', blank=True)
+    phonenumber = PhoneNumberField('Номер телефона', db_index=True)
+    status = models.CharField('Статус', max_length=20, choices=OrderStatus.choices, default=OrderStatus.IN_PROGRESS, db_index=True)
+    created_at = models.DateTimeField(auto_now=True, db_index=True)
 
     class Meta:
         verbose_name = 'Заказ'
@@ -155,8 +165,9 @@ class Order(models.Model):
 
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    price = models.DecimalField('Цена', default=0, max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
+    product = models.ForeignKey(Product, related_name='product_quantity', on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, related_name='product_quantity', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Продукт - количество'
