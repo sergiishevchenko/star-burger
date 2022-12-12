@@ -18,8 +18,9 @@
       <th>Способ оплаты</th>
       <th>Стоимость заказа</th>
       <th>Клиент</th>
-      <th>Телефон</th>
       <th>Адрес доставки</th>
+      <th>Телефон</th>
+      <th>Рестораны</th>
       <th>Ссылка на админку</th>
     </tr>
 
@@ -32,9 +33,23 @@
         <td>{{item.firstname}} {{item.lastname}}</td>
         <td>{{item.address}}</td>
         <td>{{item.phonenumber}}</td>
-        <td>
-          <a href="{% url 'admin:foodcartapp_order_change' item.pk %}?next={{ '/manager/orders/' }}">Редактировать</a>
+        <td width="18%">{{item.restaurants_have_products}}
+          {% comment %} {% if item.restaurant_order %}
+            {% if item. %}
+              Заказ готовится рестораном:<br>&#10004 {{ restaurant.name }}
+            {% else %}
+              <details>
+                <summary>Может быть приготовлен &#9660</summary>
+                  {% for restaurant in item.restaurants_have_products %}
+                      &#10004{{ restaurant.name }}<br>
+                  {% endfor %}
+              </details>
+            {% endif %}
+          {% else %}
+            Пустой заказ!
+          {% endif %} {% endcomment %}
         </td>
+        <td><a href="{% url 'admin:foodcartapp_order_change' item.pk %}?next={{ '/manager/orders/' }}">Редактировать</a></td>
       </tr>
     {% endfor %}
    </table>

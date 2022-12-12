@@ -148,6 +148,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     status = models.CharField('Статус', max_length=20, choices=OrderStatus.choices, default=OrderStatus.IN_PROGRESS, db_index=True)
     payment_method = models.CharField('Способ оплаты', max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.NO, db_index=True)
+    restaurant_order = models.ForeignKey(Restaurant, null=True, blank=True, related_name='orders', verbose_name='Ресторан, который готовит заказ', on_delete=models.SET_NULL)
     called_at = models.DateTimeField('Время звонка', blank=True, null=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, db_index=True)
@@ -160,11 +161,17 @@ class Order(models.Model):
         return '{} - {}'.format(self.lastname, self.address)
 
     @property
+    def restaurants_have_products(self):
+        products = ProductQuantity.objects.filter(order=self.id).values_list('product', flat=True)
+        restaurants = list(RestaurantMenuItem.objects.filter(product__in=products, availability=True).values_list('restaurant__name', 'product__name').distinct())
+        return restaurants
+
+    @property
     def order_price(self):
         products = ProductQuantity.objects\
             .filter(order=self.id)\
                 .values('product__price', 'quantity')\
-                    .annotate(result=F('product__price') * F('quantity'))\
+                    .annotate(result=F('price') * F('quantity'))\
                         .aggregate(Sum('result'))\
                             .get('result__sum', 0.00)
         return products
