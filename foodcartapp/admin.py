@@ -120,7 +120,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)
-        if "next" in request.GET:
+        if 'next' in request.GET:
             return HttpResponseRedirect(request.GET['next'])
         else:
             return res
