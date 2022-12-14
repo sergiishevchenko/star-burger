@@ -3,11 +3,12 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
+from geopy.distance import distance
 
+from location.views import get_or_create_locations
 from foodcartapp.models import Product, Restaurant, Order, OrderStatus
 
 
@@ -92,7 +93,25 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.filter(status=OrderStatus.IN_PROGRESS)
-    return render(request, template_name='order_items.html', context={
-        'order_items': orders
-    })
+    orders = Order.objects.filter(status__in=[OrderStatus.UNPROCESSED, OrderStatus.IN_PROGRESS]).get_order_price().select_related('restaurant_order').prefetch_related('order_quantity').get_restaurants()
+
+    order_addresses = [order.address for order in orders]
+    restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
+
+    locations = get_or_create_locations(*order_addresses, *restaurant_addresses)
+    for order in orders:
+        if order.restaurant_order:
+            order.status = OrderStatus.IN_PROGRESS
+            order.save()
+        order_location = locations[order.address]
+        for restaurant in order.are_available_restaurants:
+            restaurant_location = locations[restaurant.address]
+            lat, lng = order_location
+            if lat or lng:
+                restaurant.distance = distance(order_location, restaurant_location).km
+            else:
+                restaurant.distance = 0
+        sorted_restaurants = sorted(order.are_available_restaurants, key=lambda restaurant: restaurant.distance)
+        order.sorted_restaurants = sorted_restaurants
+        order.save()
+    return render(request, template_name='order_items.html', context={'orders': orders})
