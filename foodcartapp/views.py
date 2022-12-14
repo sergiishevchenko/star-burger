@@ -1,8 +1,5 @@
-import json
-
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from django.db import transaction
 from django.http import JsonResponse
@@ -67,22 +64,31 @@ def product_list_api(request):
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
-    raw_order = json.loads(json.dumps(request.data))
-    serializer = OrderSerializer(data=raw_order)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    for product in raw_order['products']:
-        product_serializer = ProductQuantitySerializer(data=product)
-        product_serializer.is_valid(raise_exception=True)
+    products = request.data.get('products', [])
 
+    create_order = Order.objects.create(
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
+    )
 
-    address = raw_order.get('address', '')
-    firstname = raw_order.get('firstname', '')
-    lastname = raw_order.get('lastname', '')
-    phonenumber = raw_order.get('phonenumber', '')
-    products = raw_order.get('products', [])
+    create_product_quantity = []
+    for order in products:
+        serializer_pq = ProductQuantitySerializer(data=order)
+        serializer_pq.is_valid(raise_exception=True)
 
-    new_order = Order.objects.create(address=address, firstname=firstname, lastname=lastname, phonenumber=phonenumber)
-    [ProductQuantity.objects.create(product=Product.objects.get(id=item.get('product', '')), quantity=item.get('quantity', ''), order=new_order) for item in products if products]
+        create_product_quantity.append(ProductQuantity(
+            product=serializer_pq.validated_data['product'],
+            order=create_order,
+            quantity=serializer_pq.validated_data['quantity'],
+            price=serializer_pq.validated_data['product'].price * serializer_pq.validated_data['quantity'],
 
-    return Response(OrderSerializer(new_order).data, status=status.HTTP_201_CREATED)
+        ))
+
+    ProductQuantity.objects.bulk_create(create_product_quantity)
+
+    return Response(OrderSerializer(create_order).data)
