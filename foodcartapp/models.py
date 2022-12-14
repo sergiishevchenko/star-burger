@@ -1,15 +1,18 @@
+import copy
+
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
+from functools import reduce
+
 from phonenumber_field.modelfields import PhoneNumberField
 
 
 class OrderStatus(models.TextChoices):
-    IN_PROGRESS = 'IN_PROGRESS', _('Необработанный')
-    RESTAURANT = 'IN_RESTAURANT', _('Передан в ресторан')
-    COURIER = 'IN_WAY', _('Передан курьеру')
+    UNPROCESSED = 'UNPROCESSED', _('Необработанный')
+    IN_PROGRESS = 'IN_PROGRESS', _('В процессе выполнения')
     DONE = 'DONE', _('Выполнен')
 
 
@@ -140,6 +143,21 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+    def get_order_price(self):
+        return self.annotate(order_price=Sum(F('order_quantity__price')))
+
+    def get_restaurants(self):
+        items_menu = RestaurantMenuItem.objects.select_related('product', 'restaurant')
+        for order in self:
+            ready_products = []
+            for order_product in order.order_quantity.all():
+                ready_products.append([item_menu.restaurant for item_menu in items_menu if order_product.product_id == item_menu.product.pk])
+            are_available_restaurants = reduce(set.intersection, map(set, ready_products))
+            order.are_available_restaurants = copy.deepcopy(are_available_restaurants)
+        return self
+
+
 class Order(models.Model):
     address = models.CharField('Адрес доставки', max_length=100)
     firstname = models.CharField('Имя', blank=True, max_length=20)
@@ -153,6 +171,8 @@ class Order(models.Model):
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, db_index=True)
 
+    objects = OrderQuerySet.as_manager()
+
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
@@ -160,31 +180,17 @@ class Order(models.Model):
     def __str__(self):
         return '{} - {}'.format(self.lastname, self.address)
 
-    @property
-    def restaurants_have_products(self):
-        products = ProductQuantity.objects.filter(order=self.id).values_list('product', flat=True)
-        restaurants = list(RestaurantMenuItem.objects.filter(product__in=products, availability=True).values_list('restaurant__name', 'product__name').distinct())
-        return restaurants
-
-    @property
-    def order_price(self):
-        products = ProductQuantity.objects\
-            .filter(order=self.id)\
-                .values('product__price', 'quantity')\
-                    .annotate(result=F('price') * F('quantity'))\
-                        .aggregate(Sum('result'))\
-                            .get('result__sum', 0.00)
-        return products
-
-    order_price.fget.short_description = 'Стоимость заказа'
-
 
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта')
     price = models.DecimalField('Цена', default=0, max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
     product = models.ForeignKey(Product, related_name='product_quantity', on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, related_name='product_quantity', on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, related_name='order_quantity', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Продукт - количество'
         verbose_name_plural = 'Продукты - количество'
+
+    @property
+    def count_order_price(self, save=True):
+        return self.quantity * self.product.price
