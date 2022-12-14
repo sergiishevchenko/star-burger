@@ -33,21 +33,26 @@
         <td>{{item.firstname}} {{item.lastname}}</td>
         <td>{{item.address}}</td>
         <td>{{item.phonenumber}}</td>
-        <td width="18%">{{item.restaurants_have_products}}
-          {% comment %} {% if item.restaurant_order %}
-            {% if item. %}
-              Заказ готовится рестораном:<br>&#10004 {{ restaurant.name }}
-            {% else %}
-              <details>
-                <summary>Может быть приготовлен &#9660</summary>
-                  {% for restaurant in item.restaurants_have_products %}
-                      &#10004{{ restaurant.name }}<br>
-                  {% endfor %}
-              </details>
-            {% endif %}
-          {% else %}
-            Пустой заказ!
-          {% endif %} {% endcomment %}
+        <td width="18%">
+          <details>
+            <ul>
+              {% if item.restaurant_order %}
+                <li> Приготовит ресторан: {{item.restaurant_order}}</li>
+              {% else %}
+                {% for restaurant in item.sorted_restaurants %}
+                  {% if restaurant.distance == 0 %}
+                    {% if forloop.first %}
+                      <p>Ошибка определения координат</p>
+                    {% endif %}
+                  {% else %}
+                    <li>
+                      {{restaurant.name}}: {{restaurant.distance}} км
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              {% endif%}
+            </ul>
+          </details>
         </td>
         <td><a href="{% url 'admin:foodcartapp_order_change' item.pk %}?next={{ '/manager/orders/' }}">Редактировать</a></td>
       </tr>
