@@ -54,10 +54,12 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Определите переменную окружения `SECRET_KEY`. Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
-```sh
-SECRET_KEY=django-insecure-0if40nf4nf93n4
-```
+Определите переменные окружения. Создайте файл `.env` в каталоге `star_burger/` и положите туда такой код:
+
+- `DEBUG` — дебаг-режим. Поставьте `False`.
+- `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
+- `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+- `YANDEX_API_KEY` - [по этой ссылке узнаешь как получить API_KEY](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
