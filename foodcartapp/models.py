@@ -183,7 +183,7 @@ class Order(models.Model):
 
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта', validators=[MinValueValidator(1)])
-    price = models.DecimalField('Цена', default=0, max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField('Цена', max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
     product = models.ForeignKey(Product, related_name='product_quantity', on_delete=models.PROTECT)
     order = models.ForeignKey(Order, related_name='order_quantity', on_delete=models.CASCADE)
 
