@@ -192,5 +192,5 @@ class ProductQuantity(models.Model):
         verbose_name_plural = 'Продукты - количество'
 
     @property
-    def count_order_price(self, save=True):
+    def order_price(self, save=True):
         return self.quantity * self.product.price
