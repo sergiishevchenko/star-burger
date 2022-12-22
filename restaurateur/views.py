@@ -9,7 +9,7 @@ from django.contrib.auth import views as auth_views
 from geopy.distance import distance
 
 from location.views import get_or_create_locations
-from foodcartapp.models import Product, Restaurant, Order, OrderStatus
+from foodcartapp.models import Product, Restaurant, Order
 
 
 class Login(forms.Form):
@@ -93,7 +93,12 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.filter(status__in=[OrderStatus.UNPROCESSED, OrderStatus.IN_PROGRESS]).get_order_price().select_related('selected_restaurant').prefetch_related('orders').get_accessible_restaurants()
+    orders = Order.objects\
+                        .filter(status__in=[Order.OrderStatus.UNPROCESSED, Order.OrderStatus.IN_PROGRESS])\
+                        .get_order_price()\
+                        .select_related('selected_restaurant')\
+                        .prefetch_related('orders')\
+                        .get_accessible_restaurants()
 
     order_addresses = [order.address for order in orders]
     restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
@@ -101,7 +106,7 @@ def view_orders(request):
     locations = get_or_create_locations(*order_addresses, *restaurant_addresses)
     for order in orders:
         if order.selected_restaurant:
-            order.status = OrderStatus.IN_PROGRESS
+            order.status = Order.OrderStatus.IN_PROGRESS
             order.save()
         order_location = locations[order.address]
         for restaurant in order.are_available_restaurants:

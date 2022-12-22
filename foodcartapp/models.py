@@ -10,18 +10,6 @@ from functools import reduce
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-class OrderStatus(models.TextChoices):
-    UNPROCESSED = 'UNPROCESSED', _('Необработанный')
-    IN_PROGRESS = 'IN_PROGRESS', _('В процессе выполнения')
-    DONE = 'DONE', _('Выполнен')
-
-
-class PaymentMethod(models.TextChoices):
-    CASH = 'CASH', _('Наличностью')
-    ELECTRIC = 'ELECTRIC', _('Электронно')
-    NO = 'NO', _('Не указан')
-
-
 class Restaurant(models.Model):
     name = models.CharField(
         'название',
@@ -159,6 +147,16 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    class OrderStatus(models.TextChoices):
+        UNPROCESSED = 'UNPROCESSED', _('Необработанный')
+        IN_PROGRESS = 'IN_PROGRESS', _('В процессе выполнения')
+        DONE = 'DONE', _('Выполнен')
+
+    class PaymentMethod(models.TextChoices):
+        CASH = 'CASH', _('Наличностью')
+        ELECTRIC = 'ELECTRIC', _('Электронно')
+        NO = 'NO', _('Не указан')
+
     address = models.CharField('Адрес доставки', max_length=100)
     firstname = models.CharField('Имя', blank=True, max_length=20)
     lastname = models.CharField('Фамилия', max_length=20)
