@@ -169,7 +169,7 @@ class Order(models.Model):
     restaurant_order = models.ForeignKey(Restaurant, null=True, blank=True, related_name='orders', verbose_name='Ресторан, который готовит заказ', on_delete=models.SET_NULL)
     called_at = models.DateTimeField('Время звонка', blank=True, null=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now=True, db_index=True)
+    created_at = models.DateTimeField(verbose_name='Дата создания заказа', auto_now=True, db_index=True)
 
     objects = OrderQuerySet.as_manager()
 
@@ -184,8 +184,8 @@ class Order(models.Model):
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта', validators=[MinValueValidator(1)])
     price = models.DecimalField('Цена', max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
-    product = models.ForeignKey(Product, related_name='products', on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, related_name='orders', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, verbose_name='Продукт', related_name='products', on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, verbose_name='Заказ', related_name='orders', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Продукт - количество'
