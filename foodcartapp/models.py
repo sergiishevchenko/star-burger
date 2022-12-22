@@ -166,7 +166,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     status = models.CharField('Статус', max_length=20, choices=OrderStatus.choices, default=OrderStatus.IN_PROGRESS, db_index=True)
     payment_method = models.CharField('Способ оплаты', max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.NO, db_index=True)
-    restaurant_order = models.ForeignKey(Restaurant, null=True, blank=True, related_name='orders', verbose_name='Ресторан, который готовит заказ', on_delete=models.SET_NULL)
+    selected_restaurant = models.ForeignKey(Restaurant, null=True, blank=True, related_name='orders', verbose_name='Ресторан, который готовит заказ', on_delete=models.SET_NULL)
     called_at = models.DateTimeField('Время звонка', blank=True, null=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True)
     created_at = models.DateTimeField(verbose_name='Дата создания заказа', auto_now=True, db_index=True)

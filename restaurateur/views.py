@@ -93,14 +93,14 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.filter(status__in=[OrderStatus.UNPROCESSED, OrderStatus.IN_PROGRESS]).get_order_price().select_related('restaurant_order').prefetch_related('orders').get_restaurants()
+    orders = Order.objects.filter(status__in=[OrderStatus.UNPROCESSED, OrderStatus.IN_PROGRESS]).get_order_price().select_related('selected_restaurant').prefetch_related('orders').get_restaurants()
 
     order_addresses = [order.address for order in orders]
     restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
 
     locations = get_or_create_locations(*order_addresses, *restaurant_addresses)
     for order in orders:
-        if order.restaurant_order:
+        if order.selected_restaurant:
             order.status = OrderStatus.IN_PROGRESS
             order.save()
         order_location = locations[order.address]

@@ -36,8 +36,8 @@
         <td width="18%">
           <details>
             <ul>
-              {% if item.restaurant_order %}
-                <li> Приготовит ресторан: {{item.restaurant_order}}</li>
+              {% if item.selected_restaurant %}
+                <li> Приготовит ресторан: {{item.selected_restaurant}}</li>
               {% else %}
                 {% for restaurant in item.sorted_restaurants %}
                   {% if restaurant.distance == 0 %}
