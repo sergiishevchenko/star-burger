@@ -145,13 +145,13 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def get_order_price(self):
-        return self.annotate(order_price=Sum(F('order_quantity__price')*F('order_quantity__quantity')))
+        return self.annotate(order_price=Sum(F('orders_quantity__price')*F('orders_quantity__quantity')))
 
     def get_restaurants(self):
         items_menu = RestaurantMenuItem.objects.select_related('product', 'restaurant')
         for order in self:
             ready_products = []
-            for order_product in order.order_quantity.all():
+            for order_product in order.orders_quantity.all():
                 ready_products.append([item_menu.restaurant for item_menu in items_menu if order_product.product_id == item_menu.product.pk])
             are_available_restaurants = reduce(set.intersection, map(set, ready_products))
             order.are_available_restaurants = copy.deepcopy(are_available_restaurants)
@@ -184,8 +184,8 @@ class Order(models.Model):
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта', validators=[MinValueValidator(1)])
     price = models.DecimalField('Цена', max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
-    product = models.ForeignKey(Product, related_name='product_quantity', on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, related_name='order_quantity', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='products_quantity', on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, related_name='orders_quantity', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Продукт - количество'
