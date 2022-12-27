@@ -20,10 +20,10 @@ def fetch_coordinates(apikey, address):
 def get_or_create_locations(*addresses):
     api_key = settings.YANDEX_API_KEY
     addresses = [*addresses]
-    locations = {locate.address: (locate.lat, locate.lng) for locate in Location.objects.filter(address__in=addresses)}
+    locations = {location.address: (location.lat, location.lng) for location in Location.objects.filter(address__in=addresses)}
 
     for address in addresses:
-        if address in [locate for locate in locations.keys()]:
+        if address in [location for location in locations.keys()]:
             continue
         coordinates = fetch_coordinates(api_key, address)
         if coordinates:
