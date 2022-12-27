@@ -95,9 +95,9 @@ def view_restaurants(request):
 def view_orders(request):
     orders = Order.objects\
                         .filter(status__in=[Order.OrderStatus.UNPROCESSED, Order.OrderStatus.IN_PROGRESS])\
-                        .get_order_price()\
+                        .get_orders()\
                         .select_related('selected_restaurant')\
-                        .prefetch_related('orders')\
+                        .prefetch_related('ordered_items')\
                         .get_accessible_restaurants()
 
     order_addresses = [order.address for order in orders]

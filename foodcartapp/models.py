@@ -132,8 +132,8 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def get_order_price(self):
-        return self.annotate(order_price=Sum(F('orders__price')*F('orders__quantity')))
+    def get_orders(self):
+        return self.annotate(order_price=Sum(F('ordered_items__price')*F('ordered_items__quantity')))
 
     def get_accessible_restaurants(self):
         items_menu = RestaurantMenuItem.objects.select_related('product', 'restaurant')
