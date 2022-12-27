@@ -139,7 +139,7 @@ class OrderQuerySet(models.QuerySet):
         items_menu = RestaurantMenuItem.objects.select_related('product', 'restaurant')
         for order in self:
             ready_products = []
-            for order_product in order.orders.all():
+            for order_product in order.ordered_items.all():
                 ready_products.append([item_menu.restaurant for item_menu in items_menu if order_product.product_id == item_menu.product.pk])
             are_available_restaurants = reduce(set.intersection, map(set, ready_products))
             order.are_available_restaurants = copy.deepcopy(are_available_restaurants)
@@ -182,8 +182,8 @@ class Order(models.Model):
 class ProductQuantity(models.Model):
     quantity = models.PositiveIntegerField('Количество продукта', validators=[MinValueValidator(1)])
     price = models.DecimalField('Цена', max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
-    product = models.ForeignKey(Product, verbose_name='Продукт', related_name='products', on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, verbose_name='Заказ', related_name='orders', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, verbose_name='Продукт', related_name='ordered_items', on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, verbose_name='Заказ', related_name='ordered_items', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Продукт - количество'
