@@ -7,4 +7,4 @@ class Location(models.Model):
     update_date = models.DateTimeField(auto_now=True, db_index=True, verbose_name='Когда был запрос')
 
     def __str__(self):
-        return '{}'.format(self.address)
+        return self.address
